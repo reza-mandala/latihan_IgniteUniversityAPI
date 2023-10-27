@@ -9,11 +9,7 @@ namespace MyIgniteApi
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers()
-                .AddJsonOptions(options => {
-                    options.JsonSerializerOptions.PropertyNamingPolicy = null; // Contoh untuk mengatur agar serialisasi menggunakan PascalCase
-                    // Tambahkan konfigurasi lainnya jika diperlukan
-                });        
+            services.AddControllers();
             services.AddSingleton<UniversityService>();
         }
 

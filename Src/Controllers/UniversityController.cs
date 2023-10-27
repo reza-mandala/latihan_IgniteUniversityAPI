@@ -29,7 +29,8 @@ namespace MyIgniteApi.Controllers
         public async Task<IActionResult> GetUniversitiesInParallel([FromBody] UniversityRequest request)
         {
             Console.WriteLine(JsonSerializer.Serialize(request));
-            var data = await _service.FetchAndStoreUniversitiesParallel(request.Countries);
+            var requestCountries = request.Countries ?? new List<string>();
+            var data = await _service.FetchAndStoreUniversitiesParallel(requestCountries);
             return Ok(data);
         }
     }
