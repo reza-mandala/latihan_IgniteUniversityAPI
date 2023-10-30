@@ -13,6 +13,7 @@ namespace MyIgniteApi.Services
     {
         private const string CacheName = "universities";
         private readonly ICache<string, List<University>> _cache;
+        private CassandraService _cassandraService = new CassandraService();
 
         public UniversityService()
         {
@@ -44,8 +45,36 @@ namespace MyIgniteApi.Services
             using (var client = new HttpClient())
             {
                 var response = await client.GetStringAsync($"http://universities.hipolabs.com/search?country={country}");
-                return JsonSerializer.Deserialize<List<University>>(response) ?? new List<University>();
+                var universities = JsonSerializer.Deserialize<List<University>>(response) ?? new List<University>();
+
+                // Menyimpan setiap universitas ke Cassandra
+                foreach (var university in universities)
+                {
+                    _cassandraService.InsertUniversity(university);
+                }
+                _cassandraService.Dispose();
+
+                return universities;
             }
+        }
+
+        public async Task<List<University>> FetchAndStoreUniversitiesForCountry(string country)
+        {
+            var universities = await FetchUniversitiesForCountry(country);
+
+            // Simpan ke cache
+            _cache.Put(country, universities);
+            
+            // Jika Anda juga ingin menyimpan ke Cassandra (seperti yang dibahas sebelumnya),
+            // Anda harus memanggil metode penyimpanan Cassandra di sini juga.
+            // Menyimpan setiap universitas ke Cassandra
+            foreach (var university in universities)
+            {
+                _cassandraService.InsertUniversity(university);
+            }
+            _cassandraService.Dispose();
+            
+            return universities;
         }
     }
 }
